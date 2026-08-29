@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 
 import java.time.Duration;
@@ -30,6 +31,10 @@ import java.time.Duration;
  *   <li>使用 {@code AutoContextMemory}（自动压缩 / 卸载大消息）抑制多轮输入 token 膨胀</li>
  *   <li>通过 prototype scope 保证每次请求获取独立实例，并自动从 ThreadLocal 注入会话上下文</li>
  * </ul>
+ *
+ * <p>所有 Agent Bean 均为 {@link Lazy @Lazy}：仅在第一次调用时才会真正创建 Agent 实例、
+ * 触发底层 Model 初始化。这样即便未配置 DashScope API Key，Spring 上下文也能正常启动，
+ * 业务侧可在准备好 Key 之后通过真实请求触发 Agent 装配。</p>
  *
  * <p>新增业务 Agent 时参考本类即可：定义一个 {@code @Configuration}，暴露 prototype 作用域的
  * {@link ReActAgent} bean 工厂方法，并按需注册 {@code @Tool} 方法。</p>
@@ -48,6 +53,7 @@ public class AgentConfig {
 
     @Bean(name = "echoAgent")
     @Scope("prototype")
+    @Lazy
     public ReActAgent echoAgent(@Qualifier("strongModel") Model strongModel,
                                 @Qualifier("stableModel") Model stableModel,
                                 EchoAgentFactory agentFactory,
@@ -98,6 +104,7 @@ public class AgentConfig {
      * 提供一个不依赖上下文的兜底 Agent Bean（用于框架冒烟测试 / 控制台启动验证）。
      */
     @Bean(name = "defaultEchoAgent")
+    @Lazy
     public ReActAgent defaultEchoAgent(@Qualifier("strongModel") Model strongModel,
                                        EchoAgentFactory agentFactory) {
         Toolkit toolkit = agentFactory.tools();

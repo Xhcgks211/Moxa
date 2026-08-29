@@ -58,7 +58,7 @@ public class HelloController {
 
     @Autowired
     @Qualifier("defaultEchoAgent")
-    private ReActAgent defaultEchoAgent;
+    private org.springframework.beans.factory.ObjectProvider<ReActAgent> defaultEchoAgentProvider;
 
     // ===================== 健康检查 =====================
 
